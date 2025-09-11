@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String
+  votes     Vote[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  subject   String
+  teacher   String?
+  audience  String?
+  room      String?
+  date      DateTime
+  start     DateTime
+  end       DateTime
+  tracks    Track[]
+  votes     Vote[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([subject, start, room]) // ✅ clé composite unique
+}
+
+
+
+model Track {
+  id        Int      @id @default(autoincrement())
+  title     String
+  artist    String
+  session   Session  @relation(fields: [sessionId], references: [id])
+  sessionId Int
+  votes     Vote[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Vote {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  session   Session  @relation(fields: [sessionId], references: [id])
+  sessionId Int
+  track     Track?   @relation(fields: [trackId], references: [id])
+  trackId   Int?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, sessionId]) // un vote max par utilisateur et par session
+}
