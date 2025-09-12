@@ -16,9 +16,11 @@ model User {
   isActive   Boolean     @default(true)
   createdAt  DateTime    @default(now())
   lastLogin  DateTime?
+  
+  // Relations
   votes      Vote[]
-  tracks     Track[]     @relation("UserTracks")
-  authTokens AuthToken[] // 👈 Ajout de l’autre côté de la relation avec AuthToken
+  tracks     Track[]
+  authTokens AuthToken[]
 }
 
 model AuthToken {
@@ -27,6 +29,8 @@ model AuthToken {
   expiresAt DateTime
   isUsed    Boolean  @default(false)
   createdAt DateTime @default(now())
+  
+  // Relations
   user      User     @relation(fields: [userId], references: [id])
   userId    Int
 }
@@ -49,11 +53,14 @@ model Session {
   date      DateTime
   start     DateTime
   end       DateTime
-  tracks    Track[]
-  votes     Vote[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  // Relations
+  tracks    Track[]
+  votes     Vote[]
 
+  // Unicité pour éviter les doublons de sessions identiques
   @@unique([subject, start, room])
 }
 
@@ -61,24 +68,32 @@ model Track {
   id        Int      @id @default(autoincrement())
   title     String
   artist    String
-  session   Session  @relation(fields: [sessionId], references: [id])
-  sessionId Int
-  user      User     @relation("UserTracks", fields: [userId], references: [id]) // 👈 Ajout relation avec User
-  userId    Int
-  votes     Vote[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Relations
+  session   Session  @relation(fields: [sessionId], references: [id])
+  sessionId Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  votes     Vote[]
+
+  // ✅ Un seul morceau par utilisateur et par session
+  @@unique([userId, sessionId])
 }
 
 model Vote {
   id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  // Relations
   user      User     @relation(fields: [userId], references: [id])
   userId    Int
   session   Session  @relation(fields: [sessionId], references: [id])
   sessionId Int
   track     Track?   @relation(fields: [trackId], references: [id])
   trackId   Int?
-  createdAt DateTime @default(now())
 
+  // ✅ Un vote unique par utilisateur et par session
   @@unique([userId, sessionId])
 }

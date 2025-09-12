@@ -4,6 +4,8 @@ import { PrismaClient } from "@prisma/client";
 import cron from "node-cron";
 import { runScraper } from "./jobs/scraper.js";
 import authRoutes from "./routes/auth.js";
+import tracksRoutes from "./routes/tracks.js";
+import votesroutes from "./routes/votes.js"
 
 
 const prisma = new PrismaClient();
@@ -19,6 +21,8 @@ cron.schedule("0 7 * * *", async () => {
 app.use(cors());
 app.use(express.json());
 app.use("/api/auth", authRoutes);
+app.use("/api/tracks", tracksRoutes);
+app.use("/api/votes", votesroutes);
 
 // --- Test route ---
 app.get("/", (req, res) => {

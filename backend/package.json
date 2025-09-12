@@ -15,15 +15,18 @@
   "description": "",
   "dependencies": {
     "@prisma/client": "^6.16.0",
+    "@sendgrid/mail": "^8.1.5",
     "axios": "^1.11.0",
     "cheerio": "^1.1.0",
     "cors": "^2.8.5",
     "date-fns": "^2.30.0",
     "date-fns-tz": "^2.0.0",
     "dotenv": "^17.2.2",
+    "emailjs-com": "^3.2.0",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "node-cron": "^4.2.1",
+    "nodemailer": "^7.0.6",
     "puppeteer": "^24.20.0"
   },
   "devDependencies": {
