@@ -5,13 +5,39 @@ const prisma = new PrismaClient();
 
 export async function runScraper() {
   try {
+    console.log("🔄 Nettoyage des anciennes sessions...");
+
+    // Supprimer d'abord les votes liés aux sessions passées
+    await prisma.vote.deleteMany({
+      where: {
+        session: {
+          date: { lt: new Date() } // sessions dont la date < aujourd'hui
+        }
+      }
+    });
+
+    // Supprimer les tracks liés aux sessions passées
+    await prisma.track.deleteMany({
+      where: {
+        session: {
+          date: { lt: new Date() }
+        }
+      }
+    });
+
+    // Supprimer les sessions passées
+    const deletedSessions = await prisma.session.deleteMany({
+      where: {
+        date: { lt: new Date() }
+      }
+    });
+
+    console.log(`✅ ${deletedSessions.count} anciennes sessions supprimées`);
+
     console.log("🔎 Récupération des données JSON...");
     const json = await fetchSessions();
-
-    // (Optionnel) Debug du JSON brut :
-    // console.log("🔎 JSON brut reçu :", JSON.stringify(json, null, 2));
-
     const sessions = parseSessions(json);
+
     console.log(`✅ ${sessions.length} sessions trouvées`);
     console.table(sessions, ["subject", "teacher", "room", "start", "end"]);
 
