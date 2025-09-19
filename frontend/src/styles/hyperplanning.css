@@ -1,0 +1,122 @@
+/* ===== Emploi du temps – styles isolés ===== */
+.hp {
+  width: 100%;
+  max-width: 100vw;      /* ne dépasse jamais l’écran */
+  border-radius: 8px;
+  background: #000;
+  overflow-x: hidden;    /* évite le scroll horizontal global */
+}
+
+/* Tableau */
+.hp table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #000;
+  table-layout: fixed;   /* empêche l’élargissement imprévu */
+}
+
+.hp thead {
+  background-color: #000;
+  color: #fff;
+}
+
+.hp th,
+.hp td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  white-space: nowrap;   /* desktop : pas de wrap */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hp tbody tr:nth-child(odd)  { background-color: var(--table-bg-odd, #1e3a8a); }
+.hp tbody tr:nth-child(even) { background-color: var(--table-bg-even, #1d4ed8); }
+.hp tbody tr:hover           { background-color: var(--table-hover, #2563eb); }
+
+/* Bouton Action (violet HyperPlanning) */
+.hp .btn-primary {
+  background: #6c43f3;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 700;
+  border: none;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+.hp .btn-primary:hover  { background: #8257f7; }
+.hp .btn-primary:active { transform: scale(0.97); }
+
+/* ============ Responsive ============ */
+
+/* Petits ajustements tablette */
+@media (max-width: 1200px) {
+  .hp th, .hp td { padding: 0.6rem 0.75rem; }
+}
+
+/* ✅ Basculer en “cartes” dès 960px pour supprimer tout scroll horizontal */
+@media (max-width: 960px) {
+  .hp {
+    overflow-x: hidden; /* sécurité */
+  }
+
+  /* Chaque ligne devient une carte, on cache l'en-tête */
+  .hp table,
+  .hp thead,
+  .hp tbody,
+  .hp th,
+  .hp td,
+  .hp tr {
+    display: block;
+    width: 100%;
+  }
+
+  .hp thead { display: none; }
+
+  .hp tr {
+    margin-bottom: 0.75rem;
+    background: #111;
+    border-radius: 8px;
+    padding: 0.5rem;
+    box-shadow: 0 0 0 transparent;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  }
+
+  /* Hover agréable en mobile */
+  .hp tr:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    background: #18181b;
+  }
+
+  /* Les cellules deviennent des lignes “label : valeur” */
+  .hp td {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0.45rem 0.6rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    white-space: normal;           /* ✅ autorise le retour à la ligne */
+    word-break: break-word;        /* ✅ coupe les mots trop longs */
+    text-overflow: initial;
+  }
+
+  .hp td:last-child {
+    border-bottom: none;
+    justify-content: center;       /* le bouton au centre */
+  }
+
+  /* Étiquette de colonne (utilise data-label côté JSX) */
+  .hp td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: #aaa;
+    margin-right: 0.5rem;
+    flex: 0 0 auto;
+  }
+
+  /* Bouton un peu plus compact en mobile */
+  .hp .btn-primary {
+    padding: 6px 10px;
+    font-size: 0.9rem;
+  }
+}

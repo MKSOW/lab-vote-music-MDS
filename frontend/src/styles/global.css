@@ -1,0 +1,29 @@
+/* 🎨 THEME GLOBAL - MusicVote (minimal et sûr) */
+:root {
+  --primary-bg: #111;
+  --text-color: #fff;
+
+  /* palette qu'on peut réutiliser partout */
+  --blue-900: #1e3a8a;
+  --blue-800: #1d4ed8;
+  --blue-700: #2563eb;
+  --accent: #facc15;
+  --accent-hover: #fde047;
+}
+
+/* Reset léger + base */
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  font-family: "Montserrat", Arial, sans-serif;
+  background-color: var(--primary-bg);
+  color: var(--text-color);
+}
+
+/* Petites bases sûres */
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; font-weight: 600; border: 0; }
+
+/* ⚠️ Rien ici qui cible table/th/td/thead/tbody
+   -> Ces styles iront dans un fichier scoppé HyperPlanning */
