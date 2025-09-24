@@ -14,9 +14,10 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
-app.use("/api/tracks", tracksRoutes);
-app.use("/api/votes", votesroutes);
 
+console.log("📦 Chargement de tracksRoutes...");
+app.use("/api/tracks", tracksRoutes);
+console.log("✅ Route /api/tracks montée !");
 // --- Test route ---
 app.get("/", (req, res) => {
   res.json({ message: "API OK 🚀" }); 

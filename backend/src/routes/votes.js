@@ -6,7 +6,8 @@ const prisma = new PrismaClient();
 const router = express.Router();
 
 /**
- * ✅ POST /api/votes → Créer un vote
+ * ✅ POST /api/votes
+ * Crée un vote pour un morceau donné (1 vote max par session & par utilisateur)
  */
 router.post("/", authMiddleware, async (req, res) => {
   try {
@@ -17,18 +18,20 @@ router.post("/", authMiddleware, async (req, res) => {
     }
 
     // Vérifier si la session existe
-    const session = await prisma.session.findUnique({ where: { id: sessionId } });
-    if (!session) return res.status(404).json({ error: "Session non trouvée" });
+    const session = await prisma.session.findUnique({ where: { id: Number(sessionId) } });
+    if (!session) {
+      return res.status(404).json({ error: "Session non trouvée" });
+    }
 
-    // Vérifier si le track existe et appartient à cette session
-    const track = await prisma.track.findUnique({ where: { id: trackId } });
-    if (!track || track.sessionId !== sessionId) {
-      return res.status(400).json({ error: "Track invalide pour cette session" });
+    // Vérifier si le morceau existe et correspond bien à cette session
+    const track = await prisma.track.findUnique({ where: { id: Number(trackId) } });
+    if (!track || track.sessionId !== Number(sessionId)) {
+      return res.status(400).json({ error: "Morceau invalide pour cette session" });
     }
 
     // Vérifier si l'utilisateur a déjà voté pour cette session
     const existingVote = await prisma.vote.findUnique({
-      where: { userId_sessionId: { userId: req.user.userId, sessionId } },
+      where: { userId_sessionId: { userId: req.user.userId, sessionId: Number(sessionId) } },
     });
 
     if (existingVote) {
@@ -39,12 +42,19 @@ router.post("/", authMiddleware, async (req, res) => {
     const vote = await prisma.vote.create({
       data: {
         userId: req.user.userId,
-        sessionId,
-        trackId,
+        sessionId: Number(sessionId),
+        trackId: Number(trackId),
       },
     });
 
-    res.json(vote);
+    // Compter les votes pour ce morceau (mise à jour temps réel côté front)
+    const totalVotes = await prisma.vote.count({ where: { trackId: Number(trackId) } });
+
+    res.status(201).json({
+      message: "✅ Vote enregistré avec succès !",
+      vote,
+      totalVotes,
+    });
   } catch (err) {
     console.error("❌ Erreur POST /votes :", err);
     res.status(500).json({ error: "Erreur serveur" });
@@ -52,7 +62,8 @@ router.post("/", authMiddleware, async (req, res) => {
 });
 
 /**
- * ✅ GET /api/votes/my-votes → Récupérer les votes du jour pour l'utilisateur connecté
+ * ✅ GET /api/votes/my-votes
+ * Récupère tous les votes du jour pour l'utilisateur connecté
  */
 router.get("/my-votes", authMiddleware, async (req, res) => {
   try {
@@ -65,15 +76,13 @@ router.get("/my-votes", authMiddleware, async (req, res) => {
     const myVotes = await prisma.vote.findMany({
       where: {
         userId: req.user.userId,
-        createdAt: {
-          gte: startOfDay,
-          lte: endOfDay,
-        },
+        createdAt: { gte: startOfDay, lte: endOfDay },
       },
       include: {
         track: { select: { title: true, artist: true } },
         session: { select: { subject: true, start: true, room: true } },
       },
+      orderBy: { createdAt: "desc" },
     });
 
     res.json(myVotes);
@@ -84,7 +93,8 @@ router.get("/my-votes", authMiddleware, async (req, res) => {
 });
 
 /**
- * ✅ GET /api/votes/can-vote/:sessionId → Vérifie si l'utilisateur peut voter
+ * ✅ GET /api/votes/can-vote/:sessionId
+ * Vérifie si l'utilisateur peut voter pour une session donnée
  */
 router.get("/can-vote/:sessionId", authMiddleware, async (req, res) => {
   try {
@@ -107,7 +117,8 @@ router.get("/can-vote/:sessionId", authMiddleware, async (req, res) => {
 });
 
 /**
- * 📊 GET /api/votes/session/:sessionId → Classement des votes pour une session
+ * 📊 GET /api/votes/session/:sessionId
+ * Retourne le classement des morceaux d'une session (triés par nombre de votes)
  */
 router.get("/session/:sessionId", authMiddleware, async (req, res) => {
   try {

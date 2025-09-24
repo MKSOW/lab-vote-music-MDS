@@ -15,6 +15,7 @@ export default function Navbar() {
     { to: "/top-session", label: "Top Session" },
     { to: "/top-school", label: "Top École" },
     { to: "/profile", label: "Profil" },
+    { to: "/propositions", label: "Propositions" },
   ];
 
   function handleLogout() {
