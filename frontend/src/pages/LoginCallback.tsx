@@ -9,27 +9,26 @@ export default function LoginCallback() {
   const { login } = useAuth();
 
   useEffect(() => {
-    async function verifyToken() {
+    if (!token) return;
+
+    (async () => {
       try {
+        console.log("🌍 Appel API → POST /api/auth/login/:token ...");
         const res = await api.post(`/api/auth/login/${token}`);
-        // sauvegarde user + token dans localStorage
-        if (token) {
-            login(res.data.user, token);
-            navigate("/");
-            } else {
-            console.error("Pas de token dans l'URL !");
-            navigate("/login");
-            }
+        console.log("✅ Réponse API :", res.data);
 
-        navigate("/"); // redirige vers Home
+        login(res.data.user, res.data.token);
+
+        const redirectTo = localStorage.getItem("redirectAfterLogin") || "/";
+        localStorage.removeItem("redirectAfterLogin");
+
+        navigate(redirectTo, { replace: true });
       } catch (err) {
-        console.error("❌ Erreur de connexion avec le token :", err);
-        navigate("/login"); // si token invalide → page login
+        console.error("❌ Erreur LoginCallback :", err);
+        navigate("/login");
       }
-    }
-
-    if (token) verifyToken();
-  }, [token]);
+    })();
+  }, [token, login, navigate]);
 
   return <p className="text-center mt-10">🔑 Connexion en cours...</p>;
 }

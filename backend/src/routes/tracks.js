@@ -1,3 +1,4 @@
+// routes/tracks.js
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { authMiddleware } from "../middleware/auth.js";
@@ -6,9 +7,10 @@ const prisma = new PrismaClient();
 const router = express.Router();
 
 /**
- * ✅ POST /api/tracks → Soumettre un morceau
+ * ✅ POST /api/tracks → Créer un nouveau morceau
  */
 router.post("/", authMiddleware, async (req, res) => {
+  console.log("📥 Requête POST /api/tracks reçue !");
   try {
     const { title, artist, sessionId } = req.body;
 
@@ -16,27 +18,24 @@ router.post("/", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "title, artist et sessionId sont requis" });
     }
 
-    // Vérifier si la session existe
-    const session = await prisma.session.findUnique({ where: { id: sessionId } });
+    const session = await prisma.session.findUnique({ where: { id: Number(sessionId) } });
     if (!session) {
       return res.status(404).json({ error: "Session non trouvée" });
     }
 
-    // Vérifier si l'utilisateur a déjà soumis un morceau pour cette session
     const existingTrack = await prisma.track.findUnique({
-      where: { userId_sessionId: { userId: req.user.userId, sessionId } },
+      where: { userId_sessionId: { userId: req.user.userId, sessionId: Number(sessionId) } },
     });
 
     if (existingTrack) {
       return res.status(400).json({ error: "Vous avez déjà soumis un morceau pour cette session" });
     }
 
-    // Créer le morceau
     const track = await prisma.track.create({
       data: {
         title,
         artist,
-        sessionId,
+        sessionId: Number(sessionId),
         userId: req.user.userId,
       },
       include: {
@@ -53,54 +52,46 @@ router.post("/", authMiddleware, async (req, res) => {
 });
 
 /**
- * ✅ GET /api/tracks/session/:sessionId → Liste des morceaux d'une session
+ * ✅ GET /api/tracks → Retourne toutes les tracks avec le nombre de votes
  */
-router.get("/session/:sessionId", async (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const { sessionId } = req.params;
-
     const tracks = await prisma.track.findMany({
-      where: { sessionId: Number(sessionId) },
       include: {
         _count: { select: { votes: true } },
+        session: { select: { subject: true, room: true } },
         user: { select: { firstname: true, lastname: true } },
       },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: "desc" },
     });
 
     res.json(tracks);
   } catch (err) {
-    console.error("❌ Erreur GET /tracks/session/:sessionId :", err);
+    console.error("❌ Erreur GET /tracks :", err);
     res.status(500).json({ error: "Erreur serveur" });
   }
 });
 
 /**
- * ✅ GET /api/tracks/top → Top 5 morceaux de la journée (toutes sessions confondues)
+ * ✅ DELETE /api/tracks/:id → Supprimer un morceau
  */
-router.get("/top", async (req, res) => {
+router.delete("/:id", authMiddleware, async (req, res) => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const { id } = req.params;
+    const track = await prisma.track.findUnique({ where: { id: Number(id) } });
 
-    const tracks = await prisma.track.findMany({
-      where: {
-        session: { date: { gte: today } },
-      },
-      include: {
-        _count: { select: { votes: true } },
-        session: { select: { subject: true, room: true, start: true } },
-        user: { select: { firstname: true, lastname: true } },
-      },
-      orderBy: {
-        votes: { _count: "desc" },
-      },
-      take: 5,
-    });
+    if (!track) {
+      return res.status(404).json({ error: "Morceau introuvable" });
+    }
 
-    res.json(tracks);
+    if (track.userId !== req.user.userId) {
+      return res.status(403).json({ error: "Non autorisé" });
+    }
+
+    await prisma.track.delete({ where: { id: Number(id) } });
+    res.json({ message: "Morceau supprimé avec succès" });
   } catch (err) {
-    console.error("❌ Erreur GET /tracks/top :", err);
+    console.error("❌ Erreur DELETE /tracks :", err);
     res.status(500).json({ error: "Erreur serveur" });
   }
 });

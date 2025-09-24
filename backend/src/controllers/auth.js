@@ -75,31 +75,36 @@ export async function loginWithToken(req, res) {
       return res.status(400).json({ error: "Token manquant" });
     }
 
-    // Vérifier et décoder le token
     const data = verifyToken(token);
     if (!data) {
       return res.status(401).json({ error: "Token invalide ou expiré" });
     }
 
-    // Récupérer l'utilisateur
     const user = await prisma.user.findUnique({ where: { id: data.userId } });
 
     if (!user) {
       return res.status(404).json({ error: "Utilisateur introuvable" });
     }
 
-    // Mettre à jour la dernière connexion
     await prisma.user.update({
       where: { id: user.id },
       data: { lastLogin: new Date() },
     });
 
-    return res.json({ message: "Connexion réussie", user });
+    // ✅ Générer un NOUVEAU token pour le front
+    const newToken = generateToken({ userId: user.id }, "365d");
+
+    return res.json({
+      message: "Connexion réussie",
+      user,
+      token: newToken, // ✅ envoie un token au front
+    });
   } catch (err) {
     console.error("❌ Erreur dans loginWithToken :", err);
     return res.status(500).json({ error: "Erreur interne du serveur" });
   }
 }
+
 
 /**
  * @route GET /api/auth/me

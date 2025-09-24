@@ -1,4 +1,4 @@
-/* ===== NAVBAR MusicVote (scopée) ===== */
+/* ===== NAVBAR MusicVote (Version Optimisée) ===== */
 .mv-nav {
   position: sticky;
   top: 0;
@@ -6,16 +6,25 @@
   background: #0b0b0d;
   border-bottom: 1px solid rgba(255,255,255,0.08);
   backdrop-filter: saturate(180%) blur(6px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4); /* 🔥 Ombre légère */
+  transition: background 0.3s ease;
 }
 
-/* Force nos couleurs pour éviter les overrides externes */
+.mv-nav.is-menu-open {
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(8px);
+}
+
+/* Forcer notre charte */
 .mv-nav a,
 .mv-nav button,
 .mv-nav span,
 .mv-nav svg {
   color: #e5e7eb !important;
+  text-decoration: none;
 }
 
+/* ----- Container principal ----- */
 .mv-nav__container {
   max-width: 1200px;
   margin: 0 auto;
@@ -23,31 +32,24 @@
   padding: 0 16px;
   display: flex;
   align-items: center;
-  justify-content: space-between; /* ✅ espace entre logo/menu/actions */
+  justify-content: space-between;
   gap: 16px;
-  flex-wrap: wrap; /* ✅ permet de s’adapter sur petits écrans */
+  flex-wrap: wrap;
 }
 
-/* ----- Brand ----- */
+/* ----- Logo ----- */
 .mv-nav__brand {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  text-decoration: none;
-  font-weight: 800;
-  letter-spacing: 0.2px;
 }
 .mv-nav__brand img {
   height: 36px;
   width: auto;
   object-fit: contain;
-  display: block;
-}
-.mv-nav__brand span {
-  color: #f1f5f9 !important;
 }
 
-/* ----- Menu centre (desktop) ----- */
+/* ----- Menu Desktop ----- */
 .mv-nav__menu {
   margin-left: auto;
   margin-right: auto;
@@ -60,9 +62,8 @@
   padding: 8px 10px;
   border-radius: 8px;
   font-weight: 600;
-  text-decoration: none;
-  transition: background .2s ease, color .2s ease;
   color: #cbd5e1 !important;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 .mv-nav__link:hover {
   background: rgba(255,255,255,0.06);
@@ -79,28 +80,37 @@
   border-radius: 2px;
 }
 
-/* ----- Actions droite ----- */
+/* ----- Actions Droite ----- */
 .mv-nav__actions {
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
-.mv-nav__logout {
+
+.mv-nav__logout,
+.mv-nav__login {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   background: #ef4444;
-  color: #111 !important;
+  color: #fff !important;
   padding: 8px 12px;
   border-radius: 10px;
   font-weight: 800;
-  transition: transform .08s ease, background .2s ease;
+  transition: transform 0.08s ease, background 0.2s ease;
 }
 .mv-nav__logout:hover { background: #f87171; }
 .mv-nav__logout:active { transform: translateY(1px); }
 .mv-nav__logout svg { width: 18px; height: 18px; }
 
-/* ----- Burger (mobile) ----- */
+.mv-nav__login {
+  background: #22c55e;
+}
+.mv-nav__login:hover {
+  background: #4ade80;
+}
+
+/* ----- Burger (Mobile) ----- */
 .mv-nav__burger {
   display: none;
   width: 40px;
@@ -122,8 +132,6 @@
   border-radius: 2px;
   transition: all 0.3s ease;
 }
-
-/* ✅ Animation burger → croix */
 .mv-nav__burger.is-open span:nth-child(1) {
   transform: rotate(45deg) translate(4px, 5px);
 }
@@ -134,16 +142,19 @@
   transform: rotate(-45deg) translate(4px, -5px);
 }
 
-/* ----- Panneau mobile avec animation ----- */
+/* ----- Menu Mobile ----- */
 .mv-nav__panel {
   max-height: 0;
   overflow: hidden;
   background: #0f0f12;
   border-top: 1px solid rgba(255,255,255,0.07);
-  transition: max-height 0.3s ease-in-out;
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.3s ease, max-height 0.3s ease-in-out;
 }
 .mv-nav__panel.is-open {
   max-height: 400px;
+  transform: scaleY(1);
 }
 .mv-nav__panel-inner {
   max-width: 1200px;
@@ -156,20 +167,12 @@
   padding: 12px 10px;
   border-radius: 8px;
   background: rgba(255,255,255,0.04);
-  color: #e5e7eb !important;
-  text-decoration: none;
   font-weight: 600;
+  transition: background 0.2s ease;
 }
-.mv-nav__panel-link:hover {
-  background: rgba(255,255,255,0.08);
-}
-.mv-nav__panel-logout {
-  margin-top: 6px;
-  background: #ef4444;
-  color: #111 !important;
-  padding: 12px 10px;
-  border-radius: 10px;
-  font-weight: 800;
+.mv-nav__panel-link:hover,
+.mv-nav__panel-link.active {
+  background: rgba(255,255,255,0.12);
 }
 
 /* ----- Responsive ----- */
@@ -185,14 +188,9 @@
     padding: 8px 12px;
   }
   .mv-nav__brand img { height: 28px; }
-  .mv-nav__logout {
+  .mv-nav__logout,
+  .mv-nav__login {
     padding: 6px 8px;
     font-size: 0.85rem;
   }
-}
-/* Effet visuel sur la navbar quand le menu est ouvert */
-.mv-nav.is-menu-open {
-  background: rgba(0,0,0,0.9);
-  backdrop-filter: blur(8px);
-  transition: background 0.3s ease;
 }
