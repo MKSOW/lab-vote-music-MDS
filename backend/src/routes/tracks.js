@@ -1,4 +1,3 @@
-// routes/tracks.js
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { authMiddleware } from "../middleware/auth.js";
@@ -10,7 +9,6 @@ const router = express.Router();
  * ✅ POST /api/tracks → Créer un nouveau morceau
  */
 router.post("/", authMiddleware, async (req, res) => {
-  console.log("📥 Requête POST /api/tracks reçue !");
   try {
     const { title, artist, sessionId } = req.body;
 
@@ -18,19 +16,29 @@ router.post("/", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "title, artist et sessionId sont requis" });
     }
 
+    // Vérifier si la session existe
     const session = await prisma.session.findUnique({ where: { id: Number(sessionId) } });
     if (!session) {
       return res.status(404).json({ error: "Session non trouvée" });
     }
 
+    // Vérifier si l'utilisateur a déjà soumis un morceau pour cette session
     const existingTrack = await prisma.track.findUnique({
-      where: { userId_sessionId: { userId: req.user.userId, sessionId: Number(sessionId) } },
+      where: {
+        userId_sessionId: {
+          userId: req.user.userId,
+          sessionId: Number(sessionId),
+        },
+      },
     });
 
     if (existingTrack) {
-      return res.status(400).json({ error: "Vous avez déjà soumis un morceau pour cette session" });
+      return res
+        .status(400)
+        .json({ error: "Vous avez déjà soumis un morceau pour cette session" });
     }
 
+    // Créer le morceau
     const track = await prisma.track.create({
       data: {
         title,
@@ -40,7 +48,7 @@ router.post("/", authMiddleware, async (req, res) => {
       },
       include: {
         _count: { select: { votes: true } },
-        user: { select: { firstname: true, lastname: true } },
+        user: { select: { firstname: true, lastname: true, id: true } },
       },
     });
 
@@ -52,15 +60,14 @@ router.post("/", authMiddleware, async (req, res) => {
 });
 
 /**
- * ✅ GET /api/tracks → Retourne toutes les tracks avec le nombre de votes
+ * ✅ GET /api/tracks → Retourne toutes les tracks avec user + votes
  */
 router.get("/", async (req, res) => {
   try {
     const tracks = await prisma.track.findMany({
       include: {
+        user: { select: { id: true, firstname: true, lastname: true } },
         _count: { select: { votes: true } },
-        session: { select: { subject: true, room: true } },
-        user: { select: { firstname: true, lastname: true } },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -73,7 +80,7 @@ router.get("/", async (req, res) => {
 });
 
 /**
- * ✅ DELETE /api/tracks/:id → Supprimer un morceau
+ * ✅ DELETE /api/tracks/:id → Supprimer un morceau (uniquement si owner)
  */
 router.delete("/:id", authMiddleware, async (req, res) => {
   try {

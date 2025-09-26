@@ -11,11 +11,11 @@ export default function TrackForm() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // 🔄 Charger les sessions disponibles au montage
+  // 🔄 Charger les sessions disponibles
   useEffect(() => {
     async function fetchSessions() {
       try {
-        const res = await api.get("/sessions"); // ✅ récupère toutes les sessions
+        const res = await api.get("/sessions");
         setSessions(res.data);
       } catch (err: any) {
         console.error("❌ Erreur chargement sessions :", err);
@@ -37,78 +37,134 @@ export default function TrackForm() {
       setLoading(true);
       setError("");
 
-      // ✅ Appel correct avec /api/tracks
-      await api.post("/api/tracks", {
+      const res = await api.post("/api/tracks", {
         title,
         artist,
         sessionId: Number(sessionId),
       });
 
-      // ✅ Réinitialiser le formulaire
+      // ✅ Redirige avec un toast de succès
+      navigate("/my-tracks", {
+        state: { toast: "✅ Votre musique a bien été proposée !" },
+      });
+
       setTitle("");
       setArtist("");
       setSessionId("");
-
-      // ✅ Rediriger vers la page des propositions
-      navigate("/propositions");
     } catch (err: any) {
-      console.error("❌ Erreur TrackForm :", err);
-      setError(err.response?.data?.error || "Erreur lors de l'envoi.");
+      const message = err.response?.data?.error || "Erreur lors de l'envoi.";
+      console.error("❌ Erreur TrackForm :", message);
+
+      // ✅ Redirige vers MyTracks même en cas d’erreur si c’est une proposition déjà faite
+      if (message.includes("déjà soumis") || message.includes("déjà proposé")) {
+        navigate("/my-tracks", {
+          state: { toast: "⚠️ Vous avez déjà proposé une musique pour cette session." },
+        });
+      } else {
+        setError(message);
+      }
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-black rounded-lg shadow">
-      <h1 className="text-2xl font-bold mb-4 text-center">🎵 Proposer une musique</h1>
+    <section className="page-section">
+      <h1 className="page-title">🎵 Proposer une musique</h1>
 
-      {error && (
-        <p className="bg-red-500 text-white p-2 rounded mb-4 text-center">{error}</p>
-      )}
+      <div
+        style={{
+          backgroundColor: "#1a1a1a",
+          borderRadius: "8px",
+          padding: "1.5rem",
+          boxShadow: "0 0 10px rgba(0,0,0,0.6)",
+          maxWidth: "500px",
+          margin: "0 auto",
+        }}
+      >
+        {error && (
+          <p
+            style={{
+              backgroundColor: "#b91c1c",
+              color: "#fff",
+              padding: "0.5rem",
+              borderRadius: "6px",
+              marginBottom: "1rem",
+              textAlign: "center",
+            }}
+          >
+            {error}
+          </p>
+        )}
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        {/* Sélecteur de session */}
-        <select
-          value={sessionId}
-          onChange={(e) => setSessionId(e.target.value)}
-          className="p-2 border rounded text-black"
-          required
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
         >
-          <option value="">Sélectionnez une session</option>
-          {sessions.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.subject} — Salle {s.room}
-            </option>
-          ))}
-        </select>
+          {/* Sélecteur de session */}
+          <select
+            value={sessionId}
+            onChange={(e) => setSessionId(e.target.value)}
+            style={{
+              padding: "10px",
+              borderRadius: "6px",
+              border: "1px solid #444",
+              background: "#fff",
+              color: "#000",
+              fontSize: "1rem",
+            }}
+            required
+          >
+            <option value="">Sélectionnez une session</option>
+            {sessions.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.subject} — Salle {s.room}
+              </option>
+            ))}
+          </select>
 
-        <input
-          type="text"
-          placeholder="Titre"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="p-2 border rounded text-black"
-          required
-        />
+          <input
+            type="text"
+            placeholder="Titre"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            style={{
+              padding: "10px",
+              borderRadius: "6px",
+              border: "1px solid #444",
+              background: "#fff",
+              color: "#000",
+              fontSize: "1rem",
+            }}
+            required
+          />
 
-        <input
-          type="text"
-          placeholder="Artiste"
-          value={artist}
-          onChange={(e) => setArtist(e.target.value)}
-          className="p-2 border rounded text-black"
-          required
-        />
+          <input
+            type="text"
+            placeholder="Artiste"
+            value={artist}
+            onChange={(e) => setArtist(e.target.value)}
+            style={{
+              padding: "10px",
+              borderRadius: "6px",
+              border: "1px solid #444",
+              background: "#fff",
+              color: "#000",
+              fontSize: "1rem",
+            }}
+            required
+          />
 
-        <button
-          type="submit"
-          className="bg-yellow-400 text-black font-bold py-2 px-4 rounded hover:bg-yellow-300 transition disabled:opacity-50"
-          disabled={loading}
-        >
-          {loading ? "⏳ Envoi..." : "Envoyer"}
-        </button>
-      </form>
-    </div>
+          <button
+            type="submit"
+            className="btn"
+            style={{ width: "100%", fontSize: "1rem" }}
+            disabled={loading}
+          >
+            {loading ? "⏳ Envoi..." : "Envoyer"}
+          </button>
+        </form>
+      </div>
+    </section>
   );
 }

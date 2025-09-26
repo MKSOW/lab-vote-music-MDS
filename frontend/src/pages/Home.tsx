@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api/api";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../hooks/AuthProvider";
 import { useNavigate } from "react-router-dom";
 import "../styles/hyperplanning.css";
 
@@ -50,19 +50,29 @@ export default function Home() {
           <tbody>
             {sessions.length === 0 ? (
               <tr>
-                <td colSpan={5} className="p-4">
+                <td colSpan={5} className="p-4 text-center">
                   Aucune session trouvée.
                 </td>
               </tr>
             ) : (
               sessions.map((s) => (
                 <tr key={s.id}>
-                  <td>{new Date(s.start).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} – {new Date(s.end).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</td>
-                  <td>{s.room ?? "—"}</td>
-                  <td>{s.subject}</td>
-                  <td>{s.teacher ?? "—"}</td>
-                  <td>
-                    {!user && (
+                  <td data-label="Horaires">
+                    {new Date(s.start).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}{" "}
+                    –{" "}
+                    {new Date(s.end).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </td>
+                  <td data-label="Salle">{s.room ?? "—"}</td>
+                  <td data-label="Matière">{s.subject}</td>
+                  <td data-label="Enseignant">{s.teacher ?? "—"}</td>
+                  <td data-label="Action">
+                    {!user ? (
                       <button
                         className="btn-primary"
                         onClick={() => {
@@ -73,8 +83,11 @@ export default function Home() {
                       >
                         🎵 Choisir musique
                       </button>
+                    ) : (
+                      <span style={{ color: "#22c55e", fontWeight: "bold" }}>
+                        ✅ Connecté
+                      </span>
                     )}
-                    {user && <span className="text-green-400 font-bold">✅ Connecté</span>}
                   </td>
                 </tr>
               ))

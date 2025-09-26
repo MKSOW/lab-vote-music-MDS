@@ -10,7 +10,6 @@ export default function Login() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // ✅ Redirige vers la page d'origine si déjà connecté
   useEffect(() => {
     if (user) {
       const redirectTo = localStorage.getItem("redirectAfterLogin") || "/";
@@ -22,6 +21,7 @@ export default function Login() {
   async function handleLoginRequest() {
     try {
       setLoading(true);
+      setMessage("");
       const res = await api.post("/api/auth/request-login", { email });
       setMessage(res.data.message);
     } catch (err: any) {
@@ -32,51 +32,58 @@ export default function Login() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <h1 className="text-2xl font-bold mb-4">Connexion</h1>
+    <section className="page-section">
+      <h1 className="page-title">🔑 Connexion</h1>
 
-      <input
-        type="email"
-        placeholder="Votre email"
-        className="border p-2 rounded mb-2 w-64 text-black"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-
-      <button
-        className={`bg-blue-500 text-white px-4 py-2 rounded w-64 flex justify-center items-center ${
-          loading ? "opacity-50 cursor-not-allowed" : ""
-        }`}
-        onClick={handleLoginRequest}
-        disabled={!email || loading}
+      <div
+        style={{
+          backgroundColor: "#1a1a1a",
+          borderRadius: "8px",
+          padding: "1.5rem",
+          maxWidth: "400px",
+          margin: "0 auto",
+          boxShadow: "0 0 10px rgba(0,0,0,0.6)",
+        }}
       >
-        {loading ? (
-          <svg
-            className="animate-spin h-5 w-5 text-white"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-            />
-          </svg>
-        ) : (
-          "Recevoir le lien de connexion"
-        )}
-      </button>
+        <input
+          type="email"
+          placeholder="Votre email"
+          style={{
+            width: "100%",
+            padding: "10px",
+            borderRadius: "6px",
+            border: "1px solid #444",
+            background: "#fff",
+            color: "#000",
+            fontSize: "1rem",
+            marginBottom: "1rem",
+          }}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-      {message && <p className="mt-3 text-sm text-gray-300">{message}</p>}
-    </div>
+        <button
+          onClick={handleLoginRequest}
+          className="btn"
+          style={{ width: "100%", fontSize: "1rem" }}
+          disabled={!email || loading}
+        >
+          {loading ? "⏳ Envoi..." : "Recevoir le lien de connexion"}
+        </button>
+
+        {message && (
+          <p
+            style={{
+              marginTop: "1rem",
+              textAlign: "center",
+              color: message.includes("Erreur") ? "#f87171" : "#fff",
+              fontSize: "0.9rem",
+            }}
+          >
+            {message}
+          </p>
+        )}
+      </div>
+    </section>
   );
 }

@@ -17,19 +17,24 @@ router.post("/", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "sessionId et trackId sont requis" });
     }
 
-    // Vérifier si la session existe
+    // 🔎 Vérifier si la session existe
     const session = await prisma.session.findUnique({ where: { id: Number(sessionId) } });
     if (!session) {
       return res.status(404).json({ error: "Session non trouvée" });
     }
 
-    // Vérifier si le morceau existe et correspond bien à cette session
+    // 🔎 Vérifier si le morceau existe et correspond bien à cette session
     const track = await prisma.track.findUnique({ where: { id: Number(trackId) } });
     if (!track || track.sessionId !== Number(sessionId)) {
       return res.status(400).json({ error: "Morceau invalide pour cette session" });
     }
 
-    // Vérifier si l'utilisateur a déjà voté pour cette session
+    // 🚫 Empêcher de voter pour sa propre proposition
+    if (track.userId === req.user.userId) {
+      return res.status(403).json({ error: "Vous ne pouvez pas voter pour votre propre proposition" });
+    }
+
+    // 🔎 Vérifier si l'utilisateur a déjà voté pour cette session
     const existingVote = await prisma.vote.findUnique({
       where: { userId_sessionId: { userId: req.user.userId, sessionId: Number(sessionId) } },
     });
@@ -38,7 +43,7 @@ router.post("/", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Vous avez déjà voté pour cette session" });
     }
 
-    // Créer le vote
+    // ✅ Créer le vote
     const vote = await prisma.vote.create({
       data: {
         userId: req.user.userId,
@@ -47,7 +52,7 @@ router.post("/", authMiddleware, async (req, res) => {
       },
     });
 
-    // Compter les votes pour ce morceau (mise à jour temps réel côté front)
+    // 🔢 Compter les votes pour ce morceau (mise à jour temps réel côté front)
     const totalVotes = await prisma.vote.count({ where: { trackId: Number(trackId) } });
 
     res.status(201).json({

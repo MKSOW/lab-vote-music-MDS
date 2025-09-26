@@ -1,20 +1,21 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
-import { useAuth } from "./hooks/useAuth"; 
+import { useAuth } from "./hooks/AuthProvider";
 import Navbar from "./components/Navbar";
 import LoginCallback from "./pages/LoginCallback";
 import MyTracks from "./pages/MyTracks";
-import ProtectedRoute from "./components/ProtectedRoute";
-import TopSession from "./pages/TopSession";
-import TopSchool from "./pages/TopSchool";
-import Profile from "./pages/Profile";
 import TrackForm from "./pages/TrackForm";
-import Propositions from "./pages/Propositions";
+import Profile from "./pages/Profile";
 
 function App() {
   const { user, initialized } = useAuth();
   const location = useLocation();
+
+  // 🛠 Gérer la redirection après login
+  if (location.state?.from && !user && initialized) {
+    localStorage.setItem("redirectAfterLogin", location.state.from);
+  }
 
   if (!initialized) {
     return <div className="text-center mt-10">⏳ Chargement...</div>;
@@ -22,64 +23,59 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* ✅ Navbar s'affiche seulement si user est défini */}
-      {user && location.pathname !== "/login" && <Navbar />}
+      {/* ✅ Navbar uniquement si user est connecté */}
+      {user && <Navbar />}
 
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/login/:token" element={<LoginCallback />} />
 
-        {/* ✅ Routes protégées */}
+        {/* ✅ Route protégée pour Mes musiques */}
         <Route
           path="/my-tracks"
           element={
-            <ProtectedRoute>
+            user ? (
               <MyTracks />
-            </ProtectedRoute>
+            ) : (
+              (() => {
+                localStorage.setItem("redirectAfterLogin", "/my-tracks");
+                return <Navigate to="/login" state={{ from: "/my-tracks" }} replace />;
+              })()
+            )
           }
         />
+
+        {/* ✅ Route protégée pour Proposer une musique */}
         <Route
-          path="/top-session"
+          path="/proposer"
           element={
-            <ProtectedRoute>
-              <TopSession />
-            </ProtectedRoute>
+            user ? (
+              <TrackForm />
+            ) : (
+              (() => {
+                localStorage.setItem("redirectAfterLogin", "/proposer");
+                return <Navigate to="/login" state={{ from: "/proposer" }} replace />;
+              })()
+            )
           }
         />
-        <Route
-          path="/top-school"
-          element={
-            <ProtectedRoute>
-              <TopSchool />
-            </ProtectedRoute>
-          }
-        />
+        {/* ✅ Route protégée pour Profil */}
         <Route
           path="/profile"
           element={
-            <ProtectedRoute>
+            user ? (
               <Profile />
-            </ProtectedRoute>
+            ) : (
+              (() => {
+                localStorage.setItem("redirectAfterLogin", "/profile");
+                return <Navigate to="/login" state={{ from: "/profile" }} replace />;
+              })()
+            )
           }
         />
-        <Route
-          path="/tracks/new"
-          element={
-            <ProtectedRoute>
-              <TrackForm />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/propositions"
-          element={
-            <ProtectedRoute>
-              <Propositions />
-            </ProtectedRoute>
-          }
-        /> 
 
+        {/* ✅ Redirige toutes les autres routes vers home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

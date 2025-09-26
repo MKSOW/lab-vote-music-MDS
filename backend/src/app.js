@@ -14,13 +14,12 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/votes", votesroutes);
 
-console.log("📦 Chargement de tracksRoutes...");
 app.use("/api/tracks", tracksRoutes);
-console.log("✅ Route /api/tracks montée !");
 // --- Test route ---
 app.get("/", (req, res) => {
-  res.json({ message: "API OK 🚀" }); 
+  res.json({ message: "API OK 🚀" });
 });
 
 // --- Exemple: récupérer toutes les sessions ---
@@ -33,19 +32,16 @@ app.get("/sessions", async (req, res) => {
 
 // 🔥 Scraping au démarrage du serveur
 (async () => {
-  console.log("🚀 Scraping initial au démarrage du serveur...");
   try {
     await runScraper();
-    console.log("✅ Scraping initial terminé !");
   } catch (err) {
     console.error("❌ Erreur scraping initial :", err);
   }
 })();
 
 // 🕒 Planifier l'exécution quotidienne à 07h00 heure de Paris
-console.log("✅ Cron configuré pour 07h00 chaque jour (Europe/Paris)");
 cron.schedule(
-  "0 7 * * *", 
+  "0 7 * * *",
   async () => {
     console.log("⏰ Cron: lancement du scraping quotidien à 07h00...");
     await runScraper();
@@ -57,5 +53,4 @@ cron.schedule(
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
 });

@@ -25,5 +25,171 @@ body {
 a { color: inherit; text-decoration: none; }
 button { cursor: pointer; font-weight: 600; border: 0; }
 
-/* ⚠️ Rien ici qui cible table/th/td/thead/tbody
-   -> Ces styles iront dans un fichier scoppé HyperPlanning */
+/* 🎨 --- STYLE DE LA PAGE LOGIN --- */
+
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: var(--primary-bg);
+  padding: 1rem;
+}
+
+.login-title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: var(--accent);
+}
+
+.login-input {
+  width: 300px;
+  padding: 10px;
+  margin-bottom: 1rem;
+  border: 2px solid var(--blue-700);
+  border-radius: 8px;
+  background: #fff;
+  color: #000;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.login-input:focus {
+  border-color: var(--accent);
+}
+
+.login-button {
+  width: 300px;
+  padding: 12px;
+  background-color: var(--blue-700);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.login-button:hover {
+  background-color: var(--blue-800);
+}
+
+.login-message {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+/* 🎨 --- STYLE GLOBAL DES SECTIONS ET TABLES --- */
+
+/* Titres des pages */
+.page-title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: var(--accent);
+  text-align: center;
+}
+
+/* Section principale (padding uniforme) */
+.page-section {
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Table stylisée */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table th,
+.table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #333;
+}
+
+.table th {
+  background-color: var(--blue-900);
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.table tr:hover td {
+  background-color: #222;
+}
+
+.table td {
+  color: #fff;
+}
+
+/* Bouton principal */
+.btn {
+  display: inline-block;
+  background-color: var(--blue-700);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+  background-color: var(--blue-800);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+/* Style spécial pour mettre en avant ma proposition */
+.my-track-row {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-left: 4px solid var(--accent);
+}
+
+/* Petit badge "Moi" */
+.badge {
+  background: var(--accent);
+  color: #000;
+  font-size: 0.7rem;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+}
+/* Podium Style */
+.first-place {
+  background: linear-gradient(90deg, #ffd70033, #ffd70011) !important;
+}
+.second-place {
+  background: linear-gradient(90deg, #c0c0c033, #c0c0c011) !important;
+}
+.third-place {
+  background: linear-gradient(90deg, #cd7f3233, #cd7f3211) !important;
+}
+
+/* Met en avant ma propre proposition */
+.my-track-row {
+  border-left: 4px solid var(--accent);
+}
+
+/* Petit badge "Moi" */
+.badge {
+  background: var(--accent);
+  color: #000;
+  font-size: 0.7rem;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+}

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/api";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../hooks/AuthProvider";
 
 export default function LoginCallback() {
   const { token } = useParams();
@@ -13,16 +13,13 @@ export default function LoginCallback() {
 
     (async () => {
       try {
-        console.log("🌍 Appel API → POST /api/auth/login/:token ...");
         const res = await api.post(`/api/auth/login/${token}`);
-        console.log("✅ Réponse API :", res.data);
 
+        // ✅ Stocke le user et token
         login(res.data.user, res.data.token);
 
-        const redirectTo = localStorage.getItem("redirectAfterLogin") || "/";
-        localStorage.removeItem("redirectAfterLogin");
-
-        navigate(redirectTo, { replace: true });
+        // 🔀 Redirige systématiquement vers la page MyTracks
+        navigate("/my-tracks", { replace: true });
       } catch (err) {
         console.error("❌ Erreur LoginCallback :", err);
         navigate("/login");
