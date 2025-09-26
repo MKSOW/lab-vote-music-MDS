@@ -56,7 +56,7 @@ export async function requestLogin(req, res) {
     }
 
     console.log(`✅ Lien de connexion envoyé à ${email}`);
-    res.json({ message: "Lien de connexion envoyé par email" });
+    res.json({ message: "Lien de connexion envoyé par email, dans outlook veuillez vérifier dans l'onglet courriers indésirables" });
   } catch (err) {
     console.error("❌ Erreur dans requestLogin :", err);
     res.status(500).json({ error: "Erreur serveur" });

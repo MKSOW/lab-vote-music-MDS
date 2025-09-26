@@ -32,15 +32,11 @@ export async function runScraper() {
       }
     });
 
-    console.log(`✅ ${deletedSessions.count} anciennes sessions supprimées`);
 
-    console.log("🔎 Récupération des données JSON...");
     const json = await fetchSessions();
     const sessions = parseSessions(json);
 
     console.log(`✅ ${sessions.length} sessions trouvées`);
-    console.table(sessions, ["subject", "teacher", "room", "start", "end"]);
-
     for (const s of sessions) {
       await prisma.session.upsert({
         where: {
@@ -68,11 +64,9 @@ export async function runScraper() {
       });
     }
 
-    console.log("💾 Sessions insérées/mises à jour en base !");
   } catch (err) {
     console.error("❌ Erreur de scraping :", err);
   } finally {
     await prisma.$disconnect();
-    console.log("✅ Scraping terminé");
   }
 }
