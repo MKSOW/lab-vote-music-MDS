@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import api from "../api/api";
+import api from "../api/api.js";
 import { useNavigate } from "react-router-dom";
 
 export default function TrackForm() {
@@ -11,7 +11,7 @@ export default function TrackForm() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // 🔄 Charger les sessions disponibles
+  // Charger les sessions disponibles
   useEffect(() => {
     async function fetchSessions() {
       try {
@@ -37,13 +37,12 @@ export default function TrackForm() {
       setLoading(true);
       setError("");
 
-      const res = await api.post("/api/tracks", {
+      await api.post("/api/tracks", {
         title,
         artist,
         sessionId: Number(sessionId),
       });
 
-      // ✅ Redirige avec un toast de succès
       navigate("/my-tracks", {
         state: { toast: "✅ Votre musique a bien été proposée !" },
       });
@@ -55,7 +54,6 @@ export default function TrackForm() {
       const message = err.response?.data?.error || "Erreur lors de l'envoi.";
       console.error("❌ Erreur TrackForm :", message);
 
-      // ✅ Redirige vers MyTracks même en cas d’erreur si c’est une proposition déjà faite
       if (message.includes("déjà soumis") || message.includes("déjà proposé")) {
         navigate("/my-tracks", {
           state: { toast: "⚠️ Vous avez déjà proposé une musique pour cette session." },
@@ -67,6 +65,16 @@ export default function TrackForm() {
       setLoading(false);
     }
   }
+
+  // Styles partagés pour les inputs
+  const inputStyle: React.CSSProperties = {
+    padding: "10px",
+    borderRadius: "6px",
+    border: "1px solid #444",
+    background: "#fff",
+    color: "#000",
+    fontSize: "1rem",
+  };
 
   return (
     <section className="page-section">
@@ -105,20 +113,13 @@ export default function TrackForm() {
           <select
             value={sessionId}
             onChange={(e) => setSessionId(e.target.value)}
-            style={{
-              padding: "10px",
-              borderRadius: "6px",
-              border: "1px solid #444",
-              background: "#fff",
-              color: "#000",
-              fontSize: "1rem",
-            }}
+            style={inputStyle}
             required
           >
             <option value="">Sélectionnez une session</option>
             {sessions.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.subject} — Salle {s.room}
+                {s.subject} — Salle {s.room ?? "—"}
               </option>
             ))}
           </select>
@@ -128,14 +129,7 @@ export default function TrackForm() {
             placeholder="Titre"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            style={{
-              padding: "10px",
-              borderRadius: "6px",
-              border: "1px solid #444",
-              background: "#fff",
-              color: "#000",
-              fontSize: "1rem",
-            }}
+            style={inputStyle}
             required
           />
 
@@ -144,14 +138,7 @@ export default function TrackForm() {
             placeholder="Artiste"
             value={artist}
             onChange={(e) => setArtist(e.target.value)}
-            style={{
-              padding: "10px",
-              borderRadius: "6px",
-              border: "1px solid #444",
-              background: "#fff",
-              color: "#000",
-              fontSize: "1rem",
-            }}
+            style={inputStyle}
             required
           />
 
@@ -159,7 +146,7 @@ export default function TrackForm() {
             type="submit"
             className="btn"
             style={{ width: "100%", fontSize: "1rem" }}
-            disabled={loading}
+            disabled={loading || !title.trim() || !artist.trim() || !sessionId}
           >
             {loading ? "⏳ Envoi..." : "Envoyer"}
           </button>

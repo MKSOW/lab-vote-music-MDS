@@ -1,18 +1,21 @@
-# ---- FRONTEND ----
-FROM node:20-alpine AS build
-
+# ---- Build stage ----
+FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 COPY . .
+# Surcharger VITE_API_URL au build via docker-compose 
 RUN npm run build
 
-# Utiliser nginx pour servir les fichiers compilés
-FROM nginx:alpine
-COPY --from=build /app/dist /usr/share/nginx/html
+# ---- Run stage (Nginx) ----
+FROM nginx:1.27-alpine
+WORKDIR /usr/share/nginx/html
 
-# Copie un nginx.conf custom si besoin (sinon optionnel)
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copie le build
+COPY --from=builder /app/dist ./
+
+# Nginx conf pour SPA (fallback sur index.html)
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

@@ -12,14 +12,15 @@ export async function requestLogin(req, res) {
   const { email } = req.body;
 
   try {
-    // Vérifier dans PreRegisteredUser
+    // Vérifier si l'email est pré-enregistré
     const preUser = await prisma.preRegisteredUser.findUnique({ where: { email } });
-
     if (!preUser) {
-      return res.status(404).json({ error: "Utilisateur non trouvé dans la liste des pré-inscrits" });
+      return res
+        .status(404)
+        .json({ error: "Utilisateur non trouvé dans la liste des pré-inscrits" });
     }
 
-    // Vérifier si l'utilisateur existe déjà dans User
+    // Vérifier si l'utilisateur existe déjà
     let user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
@@ -45,10 +46,13 @@ export async function requestLogin(req, res) {
     // Générer un token JWT (valide 1 an)
     const token = generateToken({ userId: user.id }, "365d");
 
-    // Construire le lien de connexion
-    const loginLink = `${process.env.FRONTEND_URL}/login/${token}`;
+    // ✅ Construire le lien avec FRONTEND_URL dynamique
+    const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
+    const loginLink = `${frontendUrl}/login/${token}`;
 
-    // Envoyer l'email via EmailJS
+    console.log(`🔗 Lien de connexion généré : ${loginLink}`);
+
+    // Envoyer l'email via SendGrid
     const success = await sendLoginEmail(email, loginLink);
 
     if (!success) {
@@ -56,7 +60,10 @@ export async function requestLogin(req, res) {
     }
 
     console.log(`✅ Lien de connexion envoyé à ${email}`);
-    res.json({ message: "Lien de connexion envoyé par email, dans outlook veuillez vérifier dans l'onglet courriers indésirables" });
+    res.json({
+      message:
+        "Lien de connexion envoyé par email. Si vous ne le trouvez pas, vérifiez vos spams/courriers indésirables.",
+    });
   } catch (err) {
     console.error("❌ Erreur dans requestLogin :", err);
     res.status(500).json({ error: "Erreur serveur" });
@@ -81,30 +88,29 @@ export async function loginWithToken(req, res) {
     }
 
     const user = await prisma.user.findUnique({ where: { id: data.userId } });
-
     if (!user) {
       return res.status(404).json({ error: "Utilisateur introuvable" });
     }
 
+    // Mettre à jour la date de dernière connexion
     await prisma.user.update({
       where: { id: user.id },
       data: { lastLogin: new Date() },
     });
 
-    // ✅ Générer un NOUVEAU token pour le front
+    // Générer un nouveau token pour le front
     const newToken = generateToken({ userId: user.id }, "365d");
 
     return res.json({
       message: "Connexion réussie",
       user,
-      token: newToken, // ✅ envoie un token au front
+      token: newToken,
     });
   } catch (err) {
     console.error("❌ Erreur dans loginWithToken :", err);
     return res.status(500).json({ error: "Erreur interne du serveur" });
   }
 }
-
 
 /**
  * @route GET /api/auth/me
@@ -117,7 +123,6 @@ export async function getMe(req, res) {
     }
 
     const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
-
     if (!user) {
       return res.status(404).json({ error: "Utilisateur introuvable" });
     }

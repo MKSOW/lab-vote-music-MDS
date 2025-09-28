@@ -1,18 +1,45 @@
-# ---- BACKEND ----
-FROM node:20-alpine
+FROM node:20-bookworm-slim
 
-# Définir dossier de travail
+# Installe dépendances pour Puppeteer/Chromium
+RUN apt-get update && apt-get install -y \
+    chromium \
+    ca-certificates \
+    fonts-liberation \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libcups2 \
+    libdbus-1-3 \
+    libdrm2 \
+    libgtk-3-0 \
+    libnspr4 \
+    libnss3 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    xdg-utils \
+  && rm -rf /var/lib/apt/lists/*
+
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+ENV NODE_ENV=production
+
 WORKDIR /app
 
-# Copier package.json + lock et installer les deps
+# Installer deps
 COPY package*.json ./
 RUN npm install --omit=dev
 
-# Copier le reste du code
+# Copie du code
 COPY . .
 
-# Exposer le port (correspond à process.env.PORT)
-EXPOSE 4000
+# Générer Prisma Client maintenant pour réduire le temps au démarrage
+RUN npx prisma generate
 
-# Commande de démarrage
-CMD ["npm", "start"]
+# Ajoute un entrypoint pour lancer les migrations avant le serveur
+COPY docker-entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+EXPOSE 4000
+CMD ["/entrypoint.sh"]
